@@ -1054,7 +1054,45 @@ impl<F: Field> SubCircuit<F> for KeccakCircuit<F> {
         layouter: &mut impl Layouter<F>,
     ) -> Result<(), Error> {
         config.load_aux_tables(layouter)?;
-        let witness = self.generate_witness(*challenges);
+        let length = 4;
+        let mut witness = self.generate_witness(*challenges);
+        // Malicious witness modifiction
+        // We set is_final on a multiple of 12 row part way through the hash
+        // This means it'll align with q_enable
+        // Doing this before the constraints on hash_rlc kick in means we can set hash_rlc on that row to whatever we want
+        // Length on that row will be a multiple of 8
+        // We have now a usable lookup entry for the prefix of that length being hashed to whatever we want
+        // Additionally, the data_rlc and length calculations will be restarted
+        // I've set this example up with the suffix being a substring of the prefix purely so that I can copy the data for this from the initial rows of the trace
+        // A more involved modification of the witness generator could easily just recalculate those rows and use an arbitrary suffix
+        // This means that the final row will now claim that hashing the suffix produces the result of correctly hashing the full input
+        let malicious_rlc = witness[12*length].data_rlc;
+        let malicious_len = witness[12*length].length;
+        for idx in (12*(length+1))..(12*(length+2)) {
+            witness[idx].data_rlc = witness[idx-(12*length)].data_rlc;
+            witness[idx].length = 8;
+        }
+        let data_rlc = witness[12].data_rlc;
+        for idx in (12*(length+2))..312 {
+            witness[idx].data_rlc = data_rlc;
+            witness[idx].length = 8;
+        }
+        witness[12*length].length = malicious_len;
+        witness[12*length].data_rlc = malicious_rlc;
+        witness[12*length].is_final = true;
+        witness[12*length].hash_rlc = Value::known(F::from(10));
+        // for row in 0..300 {
+        //     witness[row].cell_values = witness[row].cell_values.iter().map(|val| F::from(0)).collect()
+        // }
+        for (idx, row) in witness.iter().enumerate() {
+            if idx % 12 == 0 {
+                println!("")
+            }
+            if idx % 12 == 8 {
+                println!("-------")
+            }
+            println!("{idx}: {:?}, {:?}, {:?}, {:?}, {:?}", row.q_enable, row.is_final, row.data_rlc, row.length, row.hash_rlc);
+        }
         config.assign(layouter, witness.as_slice())
     }
 }
