@@ -77,6 +77,7 @@ impl Circuit<Fr> for DynamicHashCircuit {
         config: Self::Config,
         mut layouter: impl Layouter<Fr>,
     ) -> Result<(), Error> {
+        println!("Dynamic");
         let (config, challenges) = config;
         let keccak_f_rows = keccak_packed_multi::get_num_rows_per_update();
 

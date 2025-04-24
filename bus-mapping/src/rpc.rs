@@ -305,7 +305,7 @@ impl<P: JsonRpcClient> GethClient<P> {
         let hash = serialize(&hash);
         let cfg = serialize(&serde_json::json! ({
             "tracer": "prestateTracer",
-            "timeout": "300s",
+            "timeout": "30000s",
         }));
         let resp: ResultGethPrestateTraces = self
             .0

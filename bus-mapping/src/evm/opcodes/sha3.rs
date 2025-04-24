@@ -299,7 +299,8 @@ pub mod sha3_tests {
 
     #[test]
     fn sha3_opcode_ok() {
-        test_ok(0x10, 0x32, MemoryKind::Empty);
+        std::env::set_var("KECCAK_DEGREE", format!("10"));
+        test_ok(0x10, 0x08, MemoryKind::Empty);
         test_ok(0x34, 0x44, MemoryKind::LessThanSize);
         test_ok(0x222, 0x111, MemoryKind::EqualToSize);
         test_ok(0x20, 0x30, MemoryKind::MoreThanSize);

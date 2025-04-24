@@ -89,6 +89,7 @@ impl<F: Field> SubCircuitConfig<F> for KeccakCircuitConfig<F> {
             challenges,
         }: Self::ConfigArgs,
     ) -> Self {
+        println!("Config keccak circuit");
         assert!(
             get_num_rows_per_round() > NUM_BYTES_PER_WORD,
             "KeccakCircuit requires KECCAK_ROWS>=9"
@@ -1066,33 +1067,33 @@ impl<F: Field> SubCircuit<F> for KeccakCircuit<F> {
         // I've set this example up with the suffix being a substring of the prefix purely so that I can copy the data for this from the initial rows of the trace
         // A more involved modification of the witness generator could easily just recalculate those rows and use an arbitrary suffix
         // This means that the final row will now claim that hashing the suffix produces the result of correctly hashing the full input
-        let malicious_rlc = witness[12*length].data_rlc;
-        let malicious_len = witness[12*length].length;
-        for idx in (12*(length+1))..(12*(length+2)) {
-            witness[idx].data_rlc = witness[idx-(12*length)].data_rlc;
-            witness[idx].length = 8;
-        }
-        let data_rlc = witness[12].data_rlc;
-        for idx in (12*(length+2))..312 {
-            witness[idx].data_rlc = data_rlc;
-            witness[idx].length = 8;
-        }
-        witness[12*length].length = malicious_len;
-        witness[12*length].data_rlc = malicious_rlc;
-        witness[12*length].is_final = true;
-        witness[12*length].hash_rlc = Value::known(F::from(10));
-        // for row in 0..300 {
-        //     witness[row].cell_values = witness[row].cell_values.iter().map(|val| F::from(0)).collect()
+        // let malicious_rlc = witness[12*length].data_rlc;
+        // let malicious_len = witness[12*length].length;
+        // for idx in (12*(length+1))..(12*(length+2)) {
+        //     witness[idx].data_rlc = witness[idx-(12*length)].data_rlc;
+        //     witness[idx].length = 8;
         // }
-        for (idx, row) in witness.iter().enumerate() {
-            if idx % 12 == 0 {
-                println!("")
-            }
-            if idx % 12 == 8 {
-                println!("-------")
-            }
-            println!("{idx}: {:?}, {:?}, {:?}, {:?}, {:?}", row.q_enable, row.is_final, row.data_rlc, row.length, row.hash_rlc);
-        }
+        // let data_rlc = witness[12].data_rlc;
+        // for idx in (12*(length+2))..312 {
+        //     witness[idx].data_rlc = data_rlc;
+        //     witness[idx].length = 8;
+        // }
+        // witness[12*length].length = malicious_len;
+        // witness[12*length].data_rlc = malicious_rlc;
+        // witness[12*length].is_final = true;
+        // witness[12*length].hash_rlc = Value::known(F::from(10));
+        // // for row in 0..300 {
+        // //     witness[row].cell_values = witness[row].cell_values.iter().map(|val| F::from(0)).collect()
+        // // }
+        // for (idx, row) in witness.iter().enumerate() {
+        //     if idx % 12 == 0 {
+        //         println!("")
+        //     }
+        //     if idx % 12 == 8 {
+        //         println!("-------")
+        //     }
+        //     println!("{idx}: {:?}, {:?}, {:?}, {:?}, {:?}", row.q_enable, row.is_final, row.data_rlc, row.length, row.hash_rlc);
+        // }
         config.assign(layouter, witness.as_slice())
     }
 }

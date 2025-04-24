@@ -382,6 +382,7 @@ impl<const N_SNARKS: usize> Circuit<Fr> for BatchCircuit<N_SNARKS> {
         // step 2: public input batch circuit
         // ==============================================
         // extract all the hashes and load them to the hash table
+        println!("Aggregator");
         let challenges = challenge.values(&layouter);
 
         let timer = start_timer!(|| "load aux table");
