@@ -1063,28 +1063,26 @@ impl<F: Field> SubCircuit<F> for KeccakCircuit<F> {
         // Doing this before the constraints on hash_rlc kick in means we can set hash_rlc on that row to whatever we want
         // Length on that row will be a multiple of 8
         // We have now a usable lookup entry for the prefix of that length being hashed to whatever we want
+        // In this case, the prefix is just the whole byte array
         // Additionally, the data_rlc and length calculations will be restarted
-        // I've set this example up with the suffix being a substring of the prefix purely so that I can copy the data for this from the initial rows of the trace
+        // This example uses the suffix length = 0 case for simplicity, so I just set all of the data_rlc and lengths after the extra is_final to 0
         // A more involved modification of the witness generator could easily just recalculate those rows and use an arbitrary suffix
-        // This means that the final row will now claim that hashing the suffix produces the result of correctly hashing the full input
-        // let malicious_rlc = witness[12*length].data_rlc;
-        // let malicious_len = witness[12*length].length;
-        // for idx in (12*(length+1))..(12*(length+2)) {
-        //     witness[idx].data_rlc = witness[idx-(12*length)].data_rlc;
-        //     witness[idx].length = 8;
-        // }
-        // let data_rlc = witness[12].data_rlc;
-        // for idx in (12*(length+2))..312 {
-        //     witness[idx].data_rlc = data_rlc;
-        //     witness[idx].length = 8;
-        // }
-        // witness[12*length].length = malicious_len;
-        // witness[12*length].data_rlc = malicious_rlc;
-        // witness[12*length].is_final = true;
-        // witness[12*length].hash_rlc = Value::known(F::from(10));
-        // // for row in 0..300 {
-        // //     witness[row].cell_values = witness[row].cell_values.iter().map(|val| F::from(0)).collect()
-        // // }
+        // This means that the final row will now claim that hashing the suffix (the empty ByteArray in this case)
+        // produces the result of correctly hashing the full input
+        let malicious_rlc = witness[12*length].data_rlc;
+        let malicious_len = witness[12*length].length;
+        let malicious_output_rlc = Value::known(F::from(10));
+        let suffix_len = 0;
+        let data_rlc = Value::known(F::from(0));
+        for idx in (12*(length+1))..312 {
+            witness[idx].data_rlc = data_rlc;
+            witness[idx].length = suffix_len;
+        }
+        witness[12*length].q_enable = true;
+        witness[12*length].is_final = true;
+        witness[12*length].data_rlc = malicious_rlc;
+        witness[12*length].length = malicious_len;
+        witness[12*length].hash_rlc = malicious_output_rlc;
         // for (idx, row) in witness.iter().enumerate() {
         //     if idx % 12 == 0 {
         //         println!("")

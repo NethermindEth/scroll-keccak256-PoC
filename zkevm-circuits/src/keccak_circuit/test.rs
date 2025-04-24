@@ -44,6 +44,7 @@ fn verify<F: Field>(k: u32, inputs: Vec<Vec<u8>>, success: bool) {
 
 #[test]
 fn soundness_check() {
+    // Tested up to degree 16, but each increase slows the mock prover significantly and does not affect the relevant part of the table
     std::env::set_var("KECCAK_DEGREE", format!("10"));
     let k = get_degree() as u32;
     let inputs = vec![
@@ -52,10 +53,7 @@ fn soundness_check() {
             8,9,10,11,12,13,14,15,
             16,17,18,19,20,21,22,23,
             24,25,26,27,28,29,30,31,
-            0,1,2,3,4,5,6,7,
         ],
-        // vec![0,1,2,3,4,5,6,7],
-        // correct - 300: true, true, Value { inner: Some(0x301f577371537c286f836cfda4c9089fc963dbc8bbb00121ecfe27d55348deb1) }, 8, Value { inner: Some(0x2d1e7a287e1bcf29e994bf9fa42a7c810de8789b6767ef5eba1fefdf4ed9db93) }
     ];
     verify::<Fr>(k, inputs, true);
 }
